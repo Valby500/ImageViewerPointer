@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="ImageViewer">
-        <attr name="showText" format="boolean" />
+        <attr name="srcImage" format="reference"></attr>
+        <!--attr name="showText" format="boolean" />
         <attr name="labelPosition" format="enum">
             <enum name="left" value="0"/>
             <enum name="right" value="1"/>
-        </attr>
+        </attr-->
+    </declare-styleable>
+    <declare-styleable name="InteractiveLineGraphView">
+        <attr name="labelTextSize" format="dimension" />
+        <attr name="labelTextColor" format="color" />
+        <attr name="labelSeparation" format="dimension" />
+        <attr name="axisThickness" format="dimension" />
+        <attr name="axisColor" format="color" />
+        <attr name="dataThickness" format="dimension" />
+        <attr name="dataColor" format="color" />
+        <attr name="gridThickness" format="dimension" />
+        <attr name="gridColor" format="color" />
     </declare-styleable>
 </resources>
