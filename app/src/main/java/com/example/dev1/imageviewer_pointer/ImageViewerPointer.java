@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.support.v4.view.MotionEventCompat;
 import android.util.AttributeSet;
 import android.util.Property;
 import android.view.GestureDetector;
@@ -31,11 +32,10 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
 
     private PointF lastFocus = new PointF(0.0f,0.0f);
     private PointF lastCursor = new PointF(0.0f,0.0f);
-    private static Matrix initMatrix;
+    private final Matrix initMatrix = new Matrix();
     private Matrix matrix;
 
     private Paint mTextPaint;
-    private int mTextColor = Color.argb(255,0,0,255);
 
     // EVENT HANDLER
     class GestureListener implements GestureDetector.OnDoubleTapListener, GestureDetector.OnGestureListener {
@@ -57,23 +57,28 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
 //            Toast.makeText(getContext(),"onScroll",Toast.LENGTH_SHORT).show();
+
             float[] f = new float[9];
-            Matrix oldMatrix = getImageMatrix();
+            Matrix oldMatrix = new Matrix();
             Matrix transformMatrix = new Matrix();
+            oldMatrix.set(matrix);
 
             transformMatrix.postTranslate(-distanceX, -distanceY);
             oldMatrix.postConcat(transformMatrix);
 
             oldMatrix.getValues(f);
-            final float ratioX2 = (viewSize.x/2f - f[Matrix.MTRANS_X]) / currSize.x ;
-            final float ratioY2 = (viewSize.y/2f - f[Matrix.MTRANS_Y]) / currSize.y ;
+            final float ratioX2 = (viewSize.x / 2f - f[Matrix.MTRANS_X]) / currSize.x;
+            final float ratioY2 = (viewSize.y / 2f - f[Matrix.MTRANS_Y]) / currSize.y;
             f[Matrix.MTRANS_X] = (ratioX2 > 1f)
-                    ? (viewSize.x/2f - currSize.x)
-                    : ((ratioX2 < 0f) ? viewSize.x/2f : f[Matrix.MTRANS_X]);
+                    ? (viewSize.x / 2f - currSize.x)
+                    : ((ratioX2 < 0f) ? viewSize.x / 2f : f[Matrix.MTRANS_X]);
             f[Matrix.MTRANS_Y] = (ratioY2 > 1f)
-                    ? (viewSize.y/2f - currSize.y)
-                    : ((ratioY2 < 0f) ? viewSize.y/2f : f[Matrix.MTRANS_Y]);
+                    ? (viewSize.y / 2f - currSize.y)
+                    : ((ratioY2 < 0f) ? viewSize.y / 2f : f[Matrix.MTRANS_Y]);
             matrix.setValues(f);
+            setImageMatrix(matrix);
+            invalidate();
+
             return true;
         }
         @Override
@@ -109,6 +114,8 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
                 beginMatrix.getValues(f);
                 matrix.setValues(f);
             }
+            setImageMatrix(matrix);
+            invalidate();
             return true ;
         }
         @Override
@@ -116,6 +123,8 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
             float f[] = new float[9];
             initMatrix.getValues(f);
             matrix.setValues(f);
+            setImageMatrix(matrix);
+            invalidate();
             return true;
         }
         @Override
@@ -124,14 +133,15 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
             return false;
         }
     }
-    private GestureDetector mGestureDetector = new GestureDetector(ImageViewerPointer.this.getContext(), new GestureListener());
+    private final GestureDetector mGestureDetector = new GestureDetector(ImageViewerPointer.this.getContext(), new GestureListener());
 
     class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener{
         @Override
         public boolean onScale(ScaleGestureDetector detector){
             float[] f = new float[9];
-            Matrix oldMatrix = getImageMatrix();
+            Matrix oldMatrix = new Matrix();
             Matrix transformMatrix = new Matrix();
+            oldMatrix.set(matrix);
 
             final PointF currFocus = new PointF(detector.getFocusX(),detector.getFocusY());
             // Zoom focus is where the fingers are centered,
@@ -170,32 +180,53 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
 //            super.onScaleEnd(detector);
 //        }
     }
-    private ScaleGestureDetector mScaleDetector = new ScaleGestureDetector(ImageViewerPointer.this.getContext(), new ScaleListener());
+    private final ScaleGestureDetector mScaleDetector = new ScaleGestureDetector(ImageViewerPointer.this.getContext(), new ScaleListener());
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-
-        mGestureDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
+        mGestureDetector.onTouchEvent(event);
 
         final int action = event.getAction();
 
         switch(action) {
             case MotionEvent.ACTION_DOWN : {
+//                final int pointerIndex = event.getActionIndex();
+//                final float x = event.getX(pointerIndex);
+//                final float y = event.getY(pointerIndex);
+//
+//                mLastTouch.set(x,y);
+//                mActivePointerId = event.getPointerId(0);
+
+                mTextPaint.setColor(Color.argb(255,0,255,0));
                 break;
             }
             case MotionEvent.ACTION_MOVE : {
-                mTextColor = Color.argb(255, 255, 0, 0);
+//                final int pointerIndex = event.findPointerIndex(mActivePointerId);
+//                final float x = event.getX(pointerIndex);
+//                final float y = event.getY(pointerIndex);
+//
+//                final float dx = x - mLastTouch.x;
+//                final float dy = y - mLastTouch.y;
+//
+//                mPos.x += dx;
+//                mPos.y += dy;
+//
+//                mLastTouch.x = x;
+//                mLastTouch.y = y;
+
+                mTextPaint.setColor(Color.argb(255,255,0,0));
                 break;
             }
             case MotionEvent.ACTION_UP : {
-                mTextColor = Color.argb(255, 0, 0, 0);
+//                mActivePointerId = -1;
+
+                mTextPaint.setColor(Color.argb(255,0,0,0));
                 break;
             }
             default :
                 break;
         }
-        mTextPaint.setColor(mTextColor);
         setImageMatrix(matrix);
         invalidate();
         return true;
@@ -213,29 +244,22 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
 //
 //        float[] f = new float[9];
 //        matrix.getValues(f);
-//        canvas.drawText(matrix.toString(), 100,100,mTextPaint);
-//        canvas.drawText(initMatrix.toString(), 100,150,mTextPaint);
+        canvas.drawText(matrix.toString(), 10,100,mTextPaint);
+        canvas.drawText(initMatrix.toString(), 10,150,mTextPaint);
 ////        canvas.drawText(minScale + " " + f[Matrix.MSCALE_X] + " " + f[Matrix.MSCALE_Y]  + " " + maxScale, 100,200,mTextPaint);
-//        canvas.drawText(viewSize.toString() + " " + origSize.toString() + " " + currSize.toString(),100,250,mTextPaint);
+        canvas.drawText(viewSize.toString() + " " + origSize.toString() + " " + currSize.toString(),10,250,mTextPaint);
 //        canvas.drawText(lastCursor.toString() + "",100,300,mTextPaint);
+//        canvas.drawCircle(lastFocus.x,lastFocus.y,6f,mTextPaint);
 //
         canvas.drawText(cursorPos.toString() + "",viewSize.x/2f,viewSize.y/2f, mTextPaint);
 //        canvas.restore();
     }
 
-    /**
-     * onMeasure is called to determine the size requirements for this view and all of its children.
-     * Here, we scale the drawable to match it with the width of this view.
-     * @param w horizontal space requirements as imposed by the parent. The requirements are
-     *          encoded with {@link android.view.View.MeasureSpec}
-     * @param h vertical space requirements as imposed by the parent. The requirements are encoded
-     *          with {@link android.view.View.MeasureSpec}
-     */
     @Override
     protected void onMeasure(int w, int h){
         super.onMeasure(w,h);
         matrix.reset();
-        initMatrix = getImageMatrix();
+        initMatrix.set(matrix);
 
         viewSize.x = this.getMeasuredWidth();                                                       // Get this ImageViewPointer size
         viewSize.y = this.getMeasuredHeight();
@@ -244,7 +268,7 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
         origSize.x = d.getIntrinsicWidth();                                                         // and so, it original Size in the screen
         origSize.y = d.getIntrinsicHeight();
 
-        float scale = viewSize.x / origSize.x;                                                // We resize the drawable to match with the width of current ImageViewerPointer
+        float scale = viewSize.x / origSize.x;                                                      // We resize the drawable to match with the width of current ImageViewerPointer
         matrix.setScale(scale,scale);
         initMatrix.setScale(scale,scale);
         setImageMatrix(initMatrix);
@@ -253,7 +277,7 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
         if(cursorPos.y > 0.5){
             float f[] = new float[9];
             initMatrix.getValues(f);
-            f[Matrix.MTRANS_Y] = (viewSize.y - currSize.y*scale) * 0.5f;
+            f[Matrix.MTRANS_Y] = (viewSize.y - origSize.y*scale) * 0.5f;
             initMatrix.setValues(f);
             matrix.setValues(f);
             setImageMatrix(initMatrix);
@@ -264,10 +288,6 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
         maxScale = scale * 4f;
     }
 
-    /**
-     * updateDrawableData allow to update the current size of the drawable and the cursor position
-     * in the drawable, converted in a ratio value between 0 and 1
-     */
     private void updateDrawableData(){
         final float f[] = new float[9];
         getImageMatrix().getValues(f);
@@ -297,8 +317,7 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
     }
     private void init(Context context){
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTextPaint.setColor(mTextColor);
-        mTextPaint.setTextSize(20f);
+        mTextPaint.setTextSize(12f);
 
         matrix = getImageMatrix();
         updateDrawableData();
