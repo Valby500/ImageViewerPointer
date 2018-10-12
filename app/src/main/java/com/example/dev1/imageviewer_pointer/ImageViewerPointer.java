@@ -75,10 +75,11 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
             f[Matrix.MTRANS_Y] = (ratioY2 > 1f)
                     ? (viewSize.y / 2f - currSize.y)
                     : ((ratioY2 < 0f) ? viewSize.y / 2f : f[Matrix.MTRANS_Y]);
-            matrix.setValues(f);
-            setImageMatrix(matrix);
-            invalidate();
-
+            if(!mScaleDetector.isInProgress()) {
+                matrix.setValues(f);
+                setImageMatrix(matrix);
+                invalidate();
+            }
             return true;
         }
         @Override
@@ -114,8 +115,8 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
                 beginMatrix.getValues(f);
                 matrix.setValues(f);
             }
-            setImageMatrix(matrix);
-            invalidate();
+//            setImageMatrix(matrix);
+//            invalidate();
             return true ;
         }
         @Override
@@ -168,6 +169,8 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
                                 ? (viewSize.y/2f - currSize.y)
                                 : ((ratioY2 < 0f) ? viewSize.y/2f : f[Matrix.MTRANS_Y]);
             matrix.setValues(f);
+            setImageMatrix(matrix);
+            invalidate();
             return true;
         }
         @Override
@@ -177,6 +180,7 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
         }
 //        @Override
 //        public void onScaleEnd(ScaleGestureDetector detector) {
+//            Toast.makeText(getContext(),"onScaleEnd",Toast.LENGTH_SHORT).show();
 //            super.onScaleEnd(detector);
 //        }
     }
@@ -227,8 +231,8 @@ public class ImageViewerPointer extends android.support.v7.widget.AppCompatImage
             default :
                 break;
         }
-        setImageMatrix(matrix);
-        invalidate();
+//        setImageMatrix(matrix);
+//        invalidate();
         return true;
     }
 
